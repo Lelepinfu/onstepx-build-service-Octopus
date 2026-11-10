@@ -1,0 +1,31 @@
+{
+  "build": {
+    "core": "stm32",
+    "cpu": "cortex-m7",
+    "extra_flags": "-DSTM32H723xx -DSTM32H7xx",
+    "f_cpu": "550000000L",
+    "mcu": "stm32h723zet6",
+    "product": "btt_octopus_pro_h723",
+    "variant": "STM32H7xx/H723Z(G-E)T"
+  },
+  "connectivity": [
+    "can"
+  ],
+  "frameworks": [
+    "arduino",
+    "cmsis",
+    "stm32cube"
+  ],
+  "name": "BigTreeTech Octopus Pro v1.1 (H723ZET6)",
+  "upload": {
+    "maximum_size": 524288,
+    "protocols": [
+      "dfu",
+      "jlink",
+      "stlink"
+    ],
+    "protocol": "dfu"
+  },
+  "url": "https://github.com",
+  "vendor": "BIGTREETECH"
+}
