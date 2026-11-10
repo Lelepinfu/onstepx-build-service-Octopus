@@ -14,9 +14,9 @@ on:
         description: "Base64-encoded Config.h contents"
         required: true
       environment:
-        description: "PlatformIO env. OnStepX: esp32|teensy32|teensy40|teensy41|blackpill_f411|f446_fysetc_s6|skr_pro_f407. SHC: shc_esp32|shc_teensy40. SWS: sws_esp32|sws_esp8266."
+        description: "PlatformIO env. OnStepX: btt_octopus_pro_h723|esp32|teensy32|teensy40|teensy41|blackpill_f411|f446_fysetc_s6|skr_pro_f407. SHC: shc_esp32|shc_teensy40. SWS: sws_esp32|sws_esp8266."
         required: true
-        default: "esp32"
+        default: "btt_octopus_pro_h723"
       request_id:
         description: "Client-supplied UUID for correlation"
         required: true
@@ -66,7 +66,7 @@ jobs:
             *) echo "::error::unsupported project '$PROJECT'"; exit 1 ;;
           esac
           case "$PIO_ENV" in
-            esp32|teensy32|teensy40|teensy41|blackpill_f411|f446_fysetc_s6|skr_pro_f407) ;;
+            btt_octopus_pro_h723|esp32|teensy32|teensy40|teensy41|blackpill_f411|f446_fysetc_s6|skr_pro_f407) ;;
             shc_esp32|shc_teensy40) ;;
             sws_esp32|sws_esp8266) ;;
             *) echo "::error::unsupported environment '$PIO_ENV'"; exit 1 ;;
