@@ -1,0 +1,160 @@
+# Code utilisé pour générer et empaqueter votre interface web configurée
+import base64
+
+html_content = """<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OnStepX Configurator - Octopus Edition</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0d1117; color: #c9d1d9; margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .container { max-width: 950px; width: 100%; background: #161b22; padding: 30px; border-radius: 12px; border: 1px solid #30363d; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+        h1 { color: #f0f6fc; border-bottom: 2px solid #30363d; padding-bottom: 12px; margin-top: 0; font-size: 24px; display: flex; align-items: center; gap: 10px; }
+        h2 { color: #58a6ff; font-size: 18px; margin-top: 0; margin-bottom: 20px; }
+        .nav-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 25px; border-bottom: 1px solid #30363d; padding-bottom: 10px; }
+        .tab-btn { background: #21262d; border: 1px solid #30363d; color: #8b949e; padding: 10px 18px; cursor: pointer; border-radius: 6px; font-weight: 600; font-size: 13px; transition: all 0.2s ease; }
+        .tab-btn:hover { background: #30363d; color: #c9d1d9; }
+        .tab-btn.active { background: #1f6feb; border-color: #388bfd; color: #ffffff; }
+        .tab-content { display: none; background: #0d1117; padding: 20px; border-radius: 8px; border: 1px solid #21262d; animation: fadeIn 0.3s ease; }
+        .tab-content.active { display: block; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; color: #c9d1d9; font-size: 14px; }
+        select, input[type="text"], input[type="number"], textarea { width: 100%; padding: 10px; box-sizing: border-box; background: #21262d; border: 1px solid #30363d; color: #f0f6fc; border-radius: 6px; font-size: 14px; outline: none; transition: border-color 0.2s; }
+        select:focus, input:focus, textarea:focus { border-color: #58a6ff; }
+        textarea { font-family: 'Fira Code', 'Courier New', monospace; height: 350px; font-size: 13px; resize: vertical; line-height: 1.5; }
+        .btn { background: #238636; color: white; padding: 10px 20px; border: 1px solid rgba(240,246,24c,0.1); border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px; transition: background 0.2s; }
+        .btn:hover { background: #2ea043; }
+        .btn-blue { background: #1f6feb; }
+        .btn-blue:hover { background: #388bfd; }
+        .help-text { font-size: 12px; color: #8b949e; margin-top: 6px; }
+        .log-area { background: #040406; color: #39ff14; font-family: 'Courier New', monospace; padding: 15px; border-radius: 6px; height: 160px; overflow-y: auto; margin-top: 20px; white-space: pre-wrap; font-size: 13px; border: 1px solid #21262d; }
+        .result-box { margin-top: 15px; background: rgba(56,139,253,0.1); border: 1px solid rgba(56,139,253,0.3); padding: 12px; border-radius: 6px; display: inline-block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🐙 OnStepX Configurator <span style="font-size:12px; background:#30363d; padding:3px 8px; border-radius:10px; color:#8b949e; font-weight:normal; margin-left:10px;">Octopus H723 Pro Build</span></h1>
+    <p style="margin-top:0; margin-bottom:25px; color:#8b949e; font-size:14px;">Générez votre fichier de configuration, envoyez l'ordre de compilation cloud à votre dépôt et récupérez le firmware pour votre monture.</p>
+
+    <div class="nav-tabs">
+        <button class="tab-btn active" onclick="openTab('calculator')">🧮 Calculateur de Pas</button>
+        <button class="tab-btn" onclick="openTab('controller')">🎛️ Carte Contrôleur</button>
+        <button class="tab-btn" onclick="openTab('axes')">⚙️ Paramètres des Axes</button>
+        <button class="tab-btn" onclick="openTab('output')">📄 Fichier Config.h</button>
+        <button class="tab-btn" onclick="openTab('compile')">🚀 Compilation Cloud</button>
+    </div>
+
+    <!-- TAB: CALCULATOR -->
+    <div id="calculator" class="tab-content active">
+        <h2>Calculateur de Pas par Degré (Steps Per Degree)</h2>
+        <div class="form-group">
+            <label>Pas natifs du moteur (Motor Steps)</label>
+            <input type="number" id="calc_motor_steps" value="200">
+            <div class="help-text">Valeur courante : 200 pour des moteurs 1.8° ou 400 pour des moteurs 0.9°</div>
+        </div>
+        <div class="form-group">
+            <label>Configuration des Micro-pas (Microsteps)</label>
+            <select id="calc_microsteps">
+                <option value="16">16 micro-pas</option>
+                <option value="32">32 micro-pas</option>
+                <option value="64" selected>64 micro-pas (Recommandé Suivi TMC)</option>
+                <option value="128">128 micro-pas</option>
+                <option value="256">256 micro-pas</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Nombre de dents de la Couronne / Vis sans fin (Worm Teeth)</label>
+            <input type="number" id="calc_worm_teeth" value="144">
+        </div>
+        <div class="form-group">
+            <label>Rapport de réduction Courroie / Poulie (Reduction Ratio)</label>
+            <input type="text" id="calc_pulley" value="26.8512396694">
+            <div class="help-text">Entrez la valeur globale calculée ou issue de votre feuille Excel.</div>
+        </div>
+        <button class="btn" onclick="calculateSteps()">Calculer la configuration</button>
+        
+        <div class="result-box">
+            <span>Résultat mathématique : </span><strong id="calc_result" style="color: #58a6ff;">76376.8595</strong> steps/deg
+        </div>
+    </div>
+
+    <!-- TAB: CONTROLLER -->
+    <div id="controller" class="tab-content">
+        <h2>Profil de la Carte Mère</h2>
+        <div class="form-group">
+            <label>Sélection de l'architecture matérielle (PINMAP)</label>
+            <select id="PINMAP" onchange="autoResolveMCU()">
+                <option value="OFF">Désactivé (Profil inline)</option>
+                <option value="MaxPCB4">MaxPCB4 (Teensy 4.1)</option>
+                <option value="MaxESP4">MaxESP4 (ESP32)</option>
+                <option value="FYSETC_E4">FYSETC E4 (ESP32)</option>
+                <option value="BTT_SKR_PRO">BTT SKR PRO V1.2 (STM32F407)</option>
+                <option value="BTT_OCTOPUS_PRO_H723" selected>BTT Octopus Pro v1.1 (STM32H723ZET6)</option>
+                <option value="FYSETC_S6">FYSETC S6 (STM32F446VE)</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Nom réseau de la monture (Hostname)</label>
+            <input type="text" id="HOST_NAME" value="OnStepX-Octo">
+        </div>
+        <div class="form-group">
+            <label>Forme d'onde du signal (Step Waveform)</label>
+            <select id="STEP_WAVE_FORM">
+                <option value="SQUARE" selected>SQUARE (Recommandé : Signal carré optimal pour STM32H7)</option>
+                <option value="PULSE">PULSE (Fréquences plus élevées, câblage court)</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- TAB: AXES -->
+    <div id="axes" class="tab-content">
+        <h2>Configuration des Drivers et des Moteurs</h2>
+        <div class="form-group">
+            <label>Modèle de pilote moteur (Driver Model)</label>
+            <select id="AXIS_DRIVER">
+                <option value="A4988">A4988 Standard</option>
+                <option value="DRV8825">DRV8825 Standard</option>
+                <option value="TMC2209">TMC2209 (Mode UART)</option>
+                <option value="TMC5160" selected>TMC5160 Pro (Mode SPI Hautes Performances)</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Valeur de Pas par Degré (Steps Per Degree)</label>
+            <input type="text" id="AXIS_STEPS_DEG" value="76376.8595">
+        </div>
+        <div class="form-group">
+            <label>Résolution en suivi sidéral (Tracking Microsteps)</label>
+            <input type="number" id="AXIS_MICRO" value="64">
+        </div>
+        <div class="form-group">
+            <label>Résolution pendant les pointages GOTO (Slew Microsteps)</label>
+            <input type="number" id="AXIS_GOTO_MICRO" value="16">
+            <div class="help-text">Une réduction automatique à 16 micro-pas évite la saturation du processeur pendant les pointages rapides.</div>
+        </div>
+    </div>
+
+    <!-- TAB: OUTPUT -->
+    <div id="output" class="tab-content">
+        <h2>Fichier de configuration généré</h2>
+        <p style="margin-top:0; color:#8b949e; font-size:13px;">Générez le code mis à jour avant de procéder à l'envoi vers le serveur.</p>
+        <button class="btn" onclick="generateConfigString()">Générer le fichier Config.h</button>
+        <div class="form-group" style="margin-top:15px;">
+            <textarea id="config_textarea" readonly>/* Cliquez sur le bouton ci-dessus pour compiler les champs du formulaire dans ce bloc de texte */</textarea>
+        </div>
+    </div>
+
+    <!-- TAB: COMPILE & FLASH -->
+    <div id="compile" class="tab-content">
+        <h2>Compilation Automatisée dans le Cloud</h2>
+        <div class="form-group">
+            <label>Environnement cible de compilation (PlatformIO Target)</label>
+            <select id="TARGET_MCU">
+                <option value="esp32">ESP32 Dev Target</option>
+                <option value="teensy41">Teensy 4.1 Target</option>
+                <option value="skr_pro_f407">STM32F407 (SKR Pro)</option>
+                <option value="btt_octopus_pro_h723" selected>btt_octopus_pro_h723 (Octopus Pro v1.1 ZET6)</option>
+            </select>
+        </div>
